@@ -3,6 +3,7 @@ import {
   ADD_USER,
   ADD_USER_PIC,
   ADD_USER_ADDRESS,
+  UPDATE_INTERESTS,
  } from "../actions/constants";
 
 const initialState = { 
@@ -40,7 +41,7 @@ const userReducer = (state = initialState, action) =>
   produce(state, (draft) => {
     switch (action.type) {
       case ADD_USER:
-        
+  
       console.log('action.params',action.params);
         
           draft.fname=action.params.fname;
@@ -63,11 +64,12 @@ const userReducer = (state = initialState, action) =>
           draft.isSubscribe=action.params.isSubscribe;
           
         break;
-      // case ADD_USER_ADDRESS:
-      //   // console.log('Address reducer',action.params.address);
-      //   draft.address=action.params.address;
-      //   draft.addressError=action.params.addressError;
-      //   draft.addressErrorText=action.params.addressErrorText;
+      case ADD_USER_PIC:
+          console.log('ADD_USER_PIC reducer values :',action.params);
+          draft.imagePreviewUrl=action.params.imagePreviewUrl;
+          draft.isFileUpload=action.params.isFileUpload;
+          draft.file=action.params.file;
+        break;
     }
   });
 

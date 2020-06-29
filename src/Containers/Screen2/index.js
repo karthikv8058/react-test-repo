@@ -31,6 +31,7 @@ class Screen2 extends Component {
     this.home2Ref=createRef();
     this.company1Ref=createRef();
     this.company2Ref=createRef();
+    this.ageSliderRef=createRef();
 
     this.state = {
       min:19,
@@ -231,20 +232,26 @@ class Screen2 extends Component {
       this.setState({
         addressError:true,
         addressErrorText:'Address is required',
-      })
+      });
     } else if(this.addressRef.current.value=='Home'){
       this.handleHome1OnBlur();
       this.handleHome1OnChange();
       this.handleHome2OnChange();
+      this.setState({
+        addressError:false,
+        addressErrorText:'',
+      });
     }else{
       this.handleCompany1OnBlur();
       this.handleCompany1OnChange();
       this.handleCompany2OnChange();
+      
     } 
     
   }
 
   handleHome1OnBlur = () => {
+    
     if(this.home1Ref.current.value==''){
       this.setState({
         home1Error:true,
@@ -360,25 +367,27 @@ class Screen2 extends Component {
     })
   }
 
-  handleInterestsonKeyUp = (e,interestsOldValues) =>{
+  handleInterestsonKeyUp = (e) =>{
 
     this.setState({
       isPageLoading:false,
-      isInterest:false,
-      interestsValues:interestsOldValues+e.key,
     });
 
     const interests=this.state.interests;
+
+
     console.log('Key',e.key);
+    console.log('interests in keypress',interests);
 
     if(e.key===','){
       this.interestsRef.current.value.split(",").map((item) =>  
         {
           if(interests.find(interest=>interest.toLowerCase()===item.toLowerCase()) || item==''){
-            console.log('Same Values');
+
           }
           else{
             interests.push(item);
+            
           } 
         }
         );
@@ -391,7 +400,7 @@ class Screen2 extends Component {
   removeInterest = (i) =>{
 
     
-    let interests=this.state.interests;
+    const interests=this.state.interests;
 
     console.log('Interests:',interests);
     console.log('Interests lists:',interests.toString());
@@ -400,8 +409,9 @@ class Screen2 extends Component {
     this.setState({
       interests,
       isInterest:true,
-      isPageLoading:false,
     });
+
+    this.interestsRef.current.value=interests.toString();
   }
   
   
@@ -433,7 +443,7 @@ class Screen2 extends Component {
        isPageLoading:false,
      });
 
-    console.log('imagePreviewUrl:',this.state.file);
+    
     
    }
   reader.readAsDataURL(file);
@@ -461,14 +471,30 @@ class Screen2 extends Component {
     this.handleCountryOnChnage();
 
     if(this.state.errorCount==0){
+
+      
+      
+      if(this.state.interests.length==0){
+        this.setState({
+          interests:this.state.interests.concat(this.props.user.interests)
+        });
+
+        console.log('Interests props values in submit:',this.props.user.interests);
+        console.log('Interests state values in submit:',this.state.interests);
+      }
+
       this.props.history.push('/Screen3');
+     
       this.props.addUser(this.state);
+
       this.setState({
         isPageLoading:true,
       });
     }else{
       console.log('Errors in page',this.errorCount);
-      
+      this.setState({
+        errorCount:0,
+      });
     }
 
   }
@@ -489,11 +515,31 @@ class Screen2 extends Component {
         addressCompany1:this.props.user.addressCompany1,
         addressCompany2:this.props.user.addressCompany2,
         ageVal:this.props.user.ageVal,
-        // interests:this.props.user.interests,
-      })
+        isSubscribe:this.props.user.isSubscribe,
+        //interests:[...this.state.interests,this.props.user.interests],
+      });
+
+      console.log('imagePreviewUrl:',this.state.file);
      
     }
 
+    componentDidMount(){
+
+      this.interestsRef.current.value=this.props.user.interests.toString();
+      this.ageSliderRef.current.value=this.props.user.ageVal;
+      
+      if(this.props.user.isSubscribe){
+        this.subscribeRef.current.checked=true;
+      }
+
+      //console.log('Interests values :',this.props.user.interests);
+
+    }
+
+    componentWillReceiveProps(nextProps){
+      console.log('componentWillReceiveProps',nextProps);
+      
+    }
 
   render() {
 
@@ -536,11 +582,11 @@ class Screen2 extends Component {
       isSubscribe,
       interests,
       ageVal,
-    }=
-    //  this.state.isPageLoading?this.props.user:
-     this.state;
+    }= this.state.isPageLoading?this.props.user:this.state;
 
-    interestsValues = this.state.isInterest?interests.toString():this.state.interestsValues    //console.log('interests in screen2 :',this.props.user.interests);
+    console.log('Reducer image on screen2 :',this.props.user.file);
+    
+    //interestsValues = this.state.isInterest?interests.toString():this.state.interestsValues    //console.log('interests in screen2 :',this.props.user.interests);
     
     
     return (
@@ -591,6 +637,7 @@ class Screen2 extends Component {
                             min={this.state.min}
                             max={this.state.max}
                             step={this.state.step}
+                            ref={this.ageSliderRef}
                             onChange={(values)=>{this.handleOnAgeChnage(values)}}
                             renderThumb={this.Thumb}
                         />
@@ -692,10 +739,11 @@ class Screen2 extends Component {
                             placeholder="Address 2" 
                             value={addressHome2}
                             className="ml-0 ml-xl-3 mt-3 mt-xl-0 px-3 text-input-form"/>
-                            </div>
-                            <span className="text-danger">
+                             <span className="text-danger">
                               {home1Error&&home1ErrorText}
                             </span>
+                            </div>
+                           
                             <div className={address=='Company'?'d-block':'d-none'}>
                             <input 
                               type="text"
@@ -712,10 +760,11 @@ class Screen2 extends Component {
                             value={addressCompany2} 
                             placeholder="Company Address 2" 
                             className="ml-0 ml-xl-3 mt-3 mt-xl-0 px-3 text-input-form"/>
-                            </div>
-                            <span className="text-danger">
+                             <span className="text-danger">
                               {company1Error&&company1ErrorText}
                             </span>
+                            </div>
+                           
 
                             <span className="text-danger">
                               {/* {fnameError&&fnameErrorText} */}
@@ -732,9 +781,9 @@ class Screen2 extends Component {
                       <div className="col-9 mt-3 mt-sm-0">
                       <input type="text" placeholder="Type interests seperated by comma" 
                             // onBlur={this.handleInterestsOnBlur} 
-                            onKeyUp={(e)=>this.handleInterestsonKeyUp(e,interestsValues)} 
+                            onKeyUp={(e)=>this.handleInterestsonKeyUp(e)} 
                             ref={this.interestsRef}
-                            value={interestsValues}
+                            // value={interestsValues}
                             className=" px-3 text-input-form w-100"/>
 
                             <ul className="list-unstyled mt-3">
